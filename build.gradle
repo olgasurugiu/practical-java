@@ -1,0 +1,41 @@
+plugins {
+	id 'org.springframework.boot' version '2.6.7'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+}
+
+group = 'com.course'
+version = '2.0.0'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	developmentOnly
+	runtimeClasspath {
+		extendsFrom developmentOnly
+	}
+}
+
+//ext{
+//	set('apacheCommonsLang3Version', "3.9");
+//}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    //implementation "org.apache.commons:${apacheCommonsLang3Version}"
+    
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
+    
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
