@@ -18,6 +18,7 @@ public class DefaultRestApi {
 	@GetMapping(value = "/welcome")
 	public String welcome() {
 		String result = String.join(" ", Arrays.asList("Hello", " this is", " Spring boot", " REST API"));
+		
         LOG.info(result);
         
 		return "Welcome to Spring Boot";
