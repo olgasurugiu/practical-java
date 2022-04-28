@@ -1,5 +1,8 @@
 package com.course.practicaljava.api.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.course.practicaljava.entity.Car;
 import com.course.practicaljava.service.CarService;
+
+import io.netty.util.internal.ThreadLocalRandom;
 
 @RequestMapping(value = "/api/car/v1")
 @RestController
@@ -32,5 +37,17 @@ public class CarApi {
 		LOG.info("Car is {}", car);
 		
 		return car.toString();
+	}
+	
+	@GetMapping(value = "/random-cars", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<Car> randomCars() {
+	
+		var result = new ArrayList<Car>();
+		
+		for(int i = 0; i <= ThreadLocalRandom.current().nextInt(); i++) {
+			result.add(carService.generateCar());
+		}
+		
+		return result;
 	}
 }

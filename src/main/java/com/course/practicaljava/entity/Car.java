@@ -1,19 +1,22 @@
 package com.course.practicaljava.entity;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class Car {
 
+	private List<String> additionalFeatures;
+	
 	private boolean available;
 	
 	private String brand;
 	
 	private String color;
-	
+
 	private LocalDate firstReleaseDate;
 
 	private int price;
-
+	
 	private String type;
 
 	public Car() {
@@ -26,6 +29,10 @@ public class Car {
 		this.type = type;
 	}
 
+	public List<String> getAdditionalFeatures() {
+		return additionalFeatures;
+	}
+
 	public String getBrand() {
 		return brand;
 	}
@@ -33,7 +40,7 @@ public class Car {
 	public String getColor() {
 		return color;
 	}
-	
+
 	public LocalDate getFirstReleaseDate() {
 		return firstReleaseDate;
 	}
@@ -48,6 +55,10 @@ public class Car {
 	
 	public boolean isAvailable() {
 		return available;
+	}
+	
+	public void setAdditionalFeatures(List<String> additionalFeatures) {
+		this.additionalFeatures = additionalFeatures;
 	}
 
 	public void setAvailable(boolean available) {
