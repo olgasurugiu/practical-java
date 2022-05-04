@@ -28,7 +28,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.course.practicaljava.api.response.ErrorResponse;
 import com.course.practicaljava.entity.Car;
+import com.course.practicaljava.exception.IllegalApiParamException;
 import com.course.practicaljava.repository.CarElasticRepository;
 import com.course.practicaljava.service.CarService;
 
@@ -36,7 +38,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RequestMapping(value = "/api/car/v1")
 @RestController
@@ -100,24 +101,66 @@ public class CarApi {
 	}
 	
 	@GetMapping(value = "/find-json", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<Car> findCarsByBrandAndColor(@RequestBody Car car) {
-		return carRepository.findByBrandAndColor(car.getBrand(), car.getColor());
+	public List<Car> findCarsByBrandAndColor(@RequestBody Car car, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size) {
+		var pageable = PageRequest.of(page, size, Sort.by(Direction.DESC, "price"));
+		return carRepository.findByBrandAndColor(car.getBrand(), car.getColor(), pageable).getContent();
 	}
-	
+
 	@GetMapping(value = "/cars/{brand}/{color}")
-	public List<Car> findCarsByPath(@PathVariable String brand, @PathVariable String color) {
-		return carRepository.findByBrandAndColor(brand, color);
+	@Operation(summary = "Find cars by path", description = "Find cars by path variable")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "Everything is OK"),
+			@ApiResponse(responseCode = "400", description = "Bad input parameter") })
+	public ResponseEntity<Object> findCarsByPath(
+			@Parameter(description = "Brand to be find") @PathVariable String brand,
+			@Parameter(description = "Color to be find", example = "white") @PathVariable String color,
+			@Parameter(description = "Page number (for pagination)") @RequestParam(defaultValue = "0") int page,
+			@Parameter(description = "Number of items per page (for pagination)") @RequestParam(defaultValue = "10") int size) {
+		var headers = new HttpHeaders();
+		headers.add(HttpHeaders.SERVER, "Spring");
+		headers.add("X-Custom-Header", "Custom Response Header");
+
+		if (StringUtils.isNumeric(color)) {
+			var errorResponse = new ErrorResponse("Invalid color : " + color, LocalDateTime.now());
+
+			return new ResponseEntity<Object>(errorResponse, headers, HttpStatus.BAD_REQUEST);
+		}
+
+		var pageable = PageRequest.of(page, size);
+		var cars = carRepository.findByBrandAndColor(brand, color, pageable).getContent();
+
+		return ResponseEntity.ok().headers(headers).body(cars);
 	}
-	
+
 	@GetMapping(value = "/cars")
-	public List<Car> findCarsByParam(@RequestParam String brand, @RequestParam String color) {
-		return carRepository.findByBrandAndColor(brand, color);
+	public List<Car> findCarsByParam(@RequestParam String brand, @RequestParam String color,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+		if (StringUtils.isNumeric(color)) {
+			throw new IllegalArgumentException("Invalid color : " + color);
+		}
+		
+		if (StringUtils.isNumeric(brand)) {
+			throw new IllegalApiParamException("Invalid brand : " + brand);
+		}
+
+		var pageable = PageRequest.of(page, size);
+		return carRepository.findByBrandAndColor(brand, color, pageable).getContent();
 	}
 	
 	@GetMapping(value = "/cars/date")
 	List<Car> findCarsReleasedAfter(@RequestParam(value = "first_release_date") 
 	@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate firstReleaseDate){
 		return carRepository.findByFirstReleaseDateAfter(firstReleaseDate);
+	}
+	
+	@ExceptionHandler(value = IllegalArgumentException.class)
+	private ResponseEntity<ErrorResponse> handleInvalidColorException(IllegalArgumentException e) {
+		var message = "Exception, " + e.getMessage();
+		LOG.warn(message);
+
+		var errorResponse = new ErrorResponse(message, LocalDateTime.now());
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 	
 }
