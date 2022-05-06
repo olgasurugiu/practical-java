@@ -38,9 +38,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RequestMapping(value = "/api/car/v1")
 @RestController
+@Tag(name = "Car API", description = "Documentation for Car API")
 public class CarApi {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CarApi.class); 
@@ -56,8 +58,10 @@ public class CarApi {
 		return carService.generateCar();
 	}
 	
+	@Operation(summary = "Echo car", description = "Echo given car input")
 	@PostMapping(value = "/echo", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public String echo(@RequestBody Car car) {
+	public String echo(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Car to be echoed")
+	@RequestBody Car car) {
 		LOG.info("Car is {}", car);
 		
 		return car.toString();
